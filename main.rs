@@ -1,3 +1,5 @@
+mod fraction;
+
 #[derive(Debug, Copy, Clone)]
 struct Data
 {
@@ -14,6 +16,9 @@ fn main()
 
     if argc != 2 {
         return println!("usage: ./computor [equation]");
+    }
+    if args[1].find("=").is_none() {
+        return println!("Equal sign required.");
     }
     let equation = parse_input(args[1].clone());
     let data = parse_equation(equation);
@@ -53,6 +58,9 @@ fn parse_input(equation: String) -> String
                 eq[i] = '-'
             }
         }
+        if eq[i] == 'x' {
+            eq[i] = 'X';
+        }
     }
 
     return eq.iter().collect();
@@ -89,20 +97,27 @@ fn parse_equation(equation: String) -> Result<Data, String>
     let trim_equation = equation.replace(" ", "");
     let mut data = Data{ x0: 0.0, x1: 0.0, x2: 0.0, x3: 0.0 };
     let parts: Vec<String> = split_with_signs(&trim_equation);
-    // println!("{:?}", parts);
+    println!("{:?}", parts);
     for part in parts {
         let term: Vec<&str> = part.split('*').collect();
         let mut deg: f64 = 1.0;
         let mut coef = String::new();
+        // if there is only one term it's either one number "5" or one coef "X^2"
         if term.len() == 1 && term[0].find("X").is_some(){
+            // println!("parsing coef only: {}", term[0]);
+            // if the string is "-X^2" remove the sign
             if let Some(first_char) = term[0].chars().next() {
                 if first_char == '+' || first_char == '-' {
                     coef = term[0].chars().skip(1).collect(); // Skip first character and collect into String
+                    if first_char == '-'{
+                        deg = -1.0;
+                    }
                 } else {
                     coef = term[0].to_string(); // Directly convert &str to String
                 }
             }
         } else {
+            // println!("parsing number only: {}", term[0]);
             deg = term[0].parse::<f64>().map_err(|_| "Invalid number".to_string())?;
         }
         // println!("part: {}", term[0]);
@@ -121,9 +136,9 @@ fn parse_equation(equation: String) -> Result<Data, String>
         } else if coef == "X^0" || coef == ""{
             data.x0 += deg;
         } else if term.len() == 1 {
-            
+            return Err("Invalid format: ".to_string() + term[0]);
         } else {
-            return Err("Invalid format".to_string() + term[1]);
+            return Err("Invalid format: ".to_string() + term[1]);
         }
     }
     // println!("{:?}", data);
@@ -149,6 +164,9 @@ fn print_reduced(data: Data)
     let mut first_print = true;
     
     print!("Reduced form:");
+    if data.x0 == 0.0 && data.x1 == 0.0 && data.x2 == 0.0 && data.x3 == 0.0{
+        print!(" 0");
+    }
     for number in [data.x0, data.x1, data.x2, data.x3] {
         let mut sign = if number < 0.0 {"- "} else {"+ "};
         if number != 0.0 {
@@ -181,14 +199,22 @@ fn print_degree(data: Data)
 
 fn print_solution(data: Data)
 {
+    let (a, b, c) = (data.x2, data.x1, data.x0);
     if data.x3 != 0.0 {
         println!("The polynomial degree is strictly greater than 2, I can't solve.");
         return;
     }
-
-    let (a, b, c) = (data.x2, data.x1, data.x0);
-    let mut solution;
-    if a != 0.0 {
+    if a == 0.0 && b == 0.0 && c == 0.0{
+        println!("0 = 0 who would've thought !");
+    }
+    else if a == 0.0 && b == 0.0 {
+        println!("The math ain't mathing.");
+    }
+    else if a == 0.0 {
+        // let solution = -c/b;
+        println!("The solution is:\n{}", fraction::get_irreducible_fraction(-c, b));
+    }
+    else {
         let mut delta = b * b - 4.0 * a * c;
         println!("Delta: {delta}");
         if delta < 0.0 {
@@ -196,16 +222,14 @@ fn print_solution(data: Data)
         }
         else {
             delta = delta.sqrt();
-            let solution_a = (-b + delta) / (2.0 * a);
-            let solution_b = (-b - delta) / (2.0 * a);
+            let numeraotr1 = -b + delta;
+            let numerator2 = -b - delta;
+            let denominator = 2.0 * a;
+            // let solution_a = (-b + delta) / (2.0 * a);
+            // let solution_b = (-b - delta) / (2.0 * a);
+            let solution_a = fraction::get_irreducible_fraction(numeraotr1, denominator);
+            let solution_b = fraction::get_irreducible_fraction(numerator2, denominator);
             println!("The solutions are:\n{solution_a} and {solution_b}");
         }
-    }
-    else {
-        solution = -c/b;
-        if solution == -0.0 {
-            solution = 0.0;
-        }
-        println!("The solution is:\n{solution}");
     }
 }
