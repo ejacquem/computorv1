@@ -7,6 +7,7 @@ fn gcd(a: i64, b: i64) -> i64 {
     }
 }
 
+const EPSILON: f64 = 0.0000001;
 const MAX_FLOAT_NO_LOSS: f64 = 9_007_199_254_740_991.0;
 const MAX_FRACTION_NB: i64 = 10_000;
 
@@ -24,7 +25,7 @@ pub fn get_irreducible_fraction(mut num: f64, mut den: f64) -> String {
     num *= 1000000.0;
     den *= 1000000.0;
 
-    if (num - num.round()).abs() > 0.0 || (den - den.round()).abs() > 0.0 {
+    if (num - num.round()).abs() > EPSILON || (den - den.round()).abs() > EPSILON {
         let solution = num / den;
         // println!("too precise: num: {}", (num - num.round()).abs());
         // println!("too precise: den: {}", (den - den.round()).abs());

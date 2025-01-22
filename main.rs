@@ -115,9 +115,9 @@ fn parse_equation(equation: String) -> Result<Data, String>
                     }
                 }
                 // handle case like "-2X" || "3X"
-                if first_char.is_digit(10) || second_char.is_digit(10) {
+                if first_char.is_digit(10) || (second_char.is_digit(10) && first_char != 'X') {
                     let new_term: Vec<&str> = part.split('X').collect();
-                    deg = new_term[0].parse::<f64>().map_err(|_| "Invalid number".to_string())?;
+                    deg = new_term[0].parse::<f64>().map_err(|_| "Invalid format".to_string())?;
                     coef = 'X'.to_string() + new_term[1];
                 } else if first_char == '+' || first_char == '-' {
                     coef = term[0].chars().skip(1).collect(); // Skip first character and collect into String
@@ -130,7 +130,7 @@ fn parse_equation(equation: String) -> Result<Data, String>
             }
         } else {
             // println!("parsing number only: {}", term[0]);
-            deg = term[0].parse::<f64>().map_err(|_| "Invalid number".to_string())?;
+            deg = term[0].parse::<f64>().map_err(|_| "Invalid format".to_string())?;
         }
         if term.len() > 2 {
             return Err("Invalid format".to_string());
@@ -138,13 +138,13 @@ fn parse_equation(equation: String) -> Result<Data, String>
             coef = term[1].to_string();
         }
 
-        if coef == "X^3" {
+        if coef == "X^3" || coef == "X3" {
             data.x3 += deg;
-        } else if coef == "X^2" {
+        } else if coef == "X^2" || coef == "X2" {
             data.x2 += deg;
-        } else if coef == "X^1" || coef == "X" {
+        } else if coef == "X^1" || coef == "X1" || coef == "X"  {
             data.x1 += deg;
-        } else if coef == "X^0" || coef == ""{
+        } else if coef == "X^0" || coef == "X0" || coef == ""{
             data.x0 += deg;
         } else {
             return Err("Invalid format".to_string());
