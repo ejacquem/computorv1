@@ -1,4 +1,4 @@
-SRC = main.rs
+SRC = main.rs fraction.rs
 NAME = computor
 
 all: $(NAME)
