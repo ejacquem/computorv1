@@ -54,5 +54,9 @@ pub fn get_irreducible_fraction(mut num: f64, mut den: f64) -> String {
         denominator = denominator.abs();
     }
 
-    return format!("{}/{}", numerator, denominator)
+    if denominator == 1{
+        return format!("{}", numerator);
+    }
+
+    return format!("{}/{}", numerator, denominator);
 }

@@ -1,4 +1,4 @@
-SRC = fraction.rs main.rs
+SRC = main.rs
 NAME = computor
 
 all: $(NAME)
@@ -6,8 +6,8 @@ all: $(NAME)
 $(NAME): $(SRC)
 	rustc main.rs -o $(NAME)
 
-run: all
-	./$(NAME)
-
 clean:
 	rm -f $(NAME)
+
+re: clean all
+

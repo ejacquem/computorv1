@@ -97,7 +97,8 @@ fn parse_equation(equation: String) -> Result<Data, String>
     let trim_equation = equation.replace(" ", "");
     let mut data = Data{ x0: 0.0, x1: 0.0, x2: 0.0, x3: 0.0 };
     let parts: Vec<String> = split_with_signs(&trim_equation);
-    println!("{:?}", parts);
+    // println!("{:?}", parts);
+    // "3*X^2" "3" "X" "3*X" "3X^2" "3X^2"
     for part in parts {
         let term: Vec<&str> = part.split('*').collect();
         let mut deg: f64 = 1.0;
@@ -107,7 +108,18 @@ fn parse_equation(equation: String) -> Result<Data, String>
             // println!("parsing coef only: {}", term[0]);
             // if the string is "-X^2" remove the sign
             if let Some(first_char) = term[0].chars().next() {
-                if first_char == '+' || first_char == '-' {
+                let mut second_char = 'a';
+                if term[0].len() > 1 {
+                    if let Some(ch) = term[0].chars().nth(1) {
+                        second_char = ch;
+                    }
+                }
+                // handle case like "-2X" || "3X"
+                if first_char.is_digit(10) || second_char.is_digit(10) {
+                    let new_term: Vec<&str> = part.split('X').collect();
+                    deg = new_term[0].parse::<f64>().map_err(|_| "Invalid number".to_string())?;
+                    coef = 'X'.to_string() + new_term[1];
+                } else if first_char == '+' || first_char == '-' {
                     coef = term[0].chars().skip(1).collect(); // Skip first character and collect into String
                     if first_char == '-'{
                         deg = -1.0;
@@ -120,9 +132,8 @@ fn parse_equation(equation: String) -> Result<Data, String>
             // println!("parsing number only: {}", term[0]);
             deg = term[0].parse::<f64>().map_err(|_| "Invalid number".to_string())?;
         }
-        // println!("part: {}", term[0]);
         if term.len() > 2 {
-            return Err("Invalid format".to_string() + term[1]);
+            return Err("Invalid format".to_string());
         } else if term.len() == 2{
             coef = term[1].to_string();
         }
@@ -135,10 +146,8 @@ fn parse_equation(equation: String) -> Result<Data, String>
             data.x1 += deg;
         } else if coef == "X^0" || coef == ""{
             data.x0 += deg;
-        } else if term.len() == 1 {
-            return Err("Invalid format: ".to_string() + term[0]);
         } else {
-            return Err("Invalid format: ".to_string() + term[1]);
+            return Err("Invalid format".to_string());
         }
     }
     // println!("{:?}", data);
@@ -216,7 +225,7 @@ fn print_solution(data: Data)
     }
     else {
         let mut delta = b * b - 4.0 * a * c;
-        println!("Delta: {delta}");
+        // println!("Delta: {delta}");
         if delta < 0.0 {
             println!("There is no solution.");
         }
@@ -229,7 +238,11 @@ fn print_solution(data: Data)
             // let solution_b = (-b - delta) / (2.0 * a);
             let solution_a = fraction::get_irreducible_fraction(numeraotr1, denominator);
             let solution_b = fraction::get_irreducible_fraction(numerator2, denominator);
-            println!("The solutions are:\n{solution_a} and {solution_b}");
+            if solution_a == solution_b {
+                println!("The solution is:\n{solution_a}");
+            } else {
+                println!("The solutions are:\n{solution_a} and {solution_b}");
+            }
         }
     }
 }
